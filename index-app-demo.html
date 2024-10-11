@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>La Mia Classe</title>
+    <style>
+        /* Styles CSS */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        
+        header {
+            background-color: #3c78d8;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        nav {
+            background-color: #f1f1f1;
+            overflow: hidden;
+            display: none; /* Nascosto fino al login */
+        }
+        
+        nav ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        nav li {
+            float: left;
+        }
+        
+        nav li a {
+            display: block;
+            color: #000;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+        }
+        
+        nav li a:hover {
+            background-color: #ddd;
+        }
+        
+        main {
+            padding: 20px;
+        }
+        
+        section {
+            margin-bottom: 40px;
+        }
+        
+        footer {
+            background-color: #3c78d8;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+        
+        /* Aggiunta per migliorare la visualizzazione */
+        .assignment, .announcement {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        /* Stili per il login */
+        #login {
+            max-width: 300px;
+            margin: 100px auto;
+            text-align: center;
+        }
+        
+        #login button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        
+        /* Form per creare assegnazioni */
+        #create-assignment {
+            margin-bottom: 30px;
+        }
+        
+        #create-assignment input, #create-assignment select {
+            padding: 5px;
+            margin-right: 10px;
+        }
+        
+        /* Lista studenti */
+        #students-list {
+            margin-top: 20px;
+        }
+        
+        #students-list li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>La Mia Classe Dinamica</h1>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="#" id="nav-stream">Stream</a></li>
+            <li><a href="#" id="nav-assignments">Lavori del corso</a></li>
+            <li><a href="#" id="nav-people">Persone</a></li>
+            <li><a href="#" id="nav-grades">Voti</a></li>
+            <li><a href="#" id="nav-logout">Logout</a></li>
+        </ul>
+    </nav>
+    <main>
+        <!-- Sezione di login -->
+        <section id="login">
+            <h2>Accedi come:</h2>
+            <button id="login-teacher">Insegnante</button>
+            <button id="login-student">Studente</button>
+        </section>
+        
+        <!-- Sezioni per insegnanti e studenti -->
+        <section id="teacher-section" style="display:none;">
+            <h2>Benvenuto, Insegnante!</h2>
+            <div id="create-assignment">
+                <h3>Crea una nuova assegnazione</h3>
+                <input type="text" id="assignment-title" placeholder="Titolo">
+                <input type="date" id="assignment-due-date">
+                <button id="add-assignment">Aggiungi Assegnazione</button>
+            </div>
+            <div id="assignments">
+                <h3>Assegnazioni Create</h3>
+                <!-- Assegnazioni create dall'insegnante -->
+            </div>
+        </section>
+        
+        <section id="student-section" style="display:none;">
+            <h2>Benvenuto, Studente!</h2>
+            <div id="assignments">
+                <h3>Le tue Assegnazioni</h3>
+                <!-- Assegnazioni assegnate allo studente -->
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2024 La Mia Classe</p>
+    </footer>
+
+    <script>
+        // JavaScript per gestire il login e le funzionalità dinamiche
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginSection = document.getElementById('login');
+            const nav = document.querySelector('nav');
+            const teacherSection = document.getElementById('teacher-section');
+            const studentSection = document.getElementById('student-section');
+            const loginTeacherBtn = document.getElementById('login-teacher');
+            const loginStudentBtn = document.getElementById('login-student');
+            const navLogout = document.getElementById('nav-logout');
+
+            let userRole = ''; // 'teacher' o 'student'
+
+            // Simulazione dati
+            let assignments = [];
+            let students = ['Studente1', 'Studente2', 'Studente3'];
+            let studentAssignments = {};
+
+            // Funzione per mostrare la sezione corretta dopo il login
+            function showSection() {
+                loginSection.style.display = 'none';
+                nav.style.display = 'block';
+
+                if (userRole === 'teacher') {
+                    teacherSection.style.display = 'block';
+                    studentSection.style.display = 'none';
+                    renderTeacherAssignments();
+                } else if (userRole === 'student') {
+                    teacherSection.style.display = 'none';
+                    studentSection.style.display = 'block';
+                    renderStudentAssignments();
+                }
+            }
+
+            // Event listener per il login insegnante
+            loginTeacherBtn.addEventListener('click', () => {
+                userRole = 'teacher';
+                showSection();
+            });
+
+            // Event listener per il login studente
+            loginStudentBtn.addEventListener('click', () => {
+                userRole = 'student';
+                showSection();
+            });
+
+            // Event listener per il logout
+            navLogout.addEventListener('click', () => {
+                userRole = '';
+                loginSection.style.display = 'block';
+                nav.style.display = 'none';
+                teacherSection.style.display = 'none';
+                studentSection.style.display = 'none';
+            });
+
+            // Funzione per l'insegnante per aggiungere una nuova assegnazione
+            const addAssignmentBtn = document.getElementById('add-assignment');
+            addAssignmentBtn.addEventListener('click', () => {
+                const title = document.getElementById('assignment-title').value;
+                const dueDate = document.getElementById('assignment-due-date').value;
+
+                if (title && dueDate) {
+                    const newAssignment = {
+                        id: assignments.length + 1,
+                        title,
+                        dueDate
+                    };
+                    assignments.push(newAssignment);
+
+                    // Assegna l'assegnazione a tutti gli studenti
+                    students.forEach(student => {
+                        if (!studentAssignments[student]) {
+                            studentAssignments[student] = [];
+                        }
+                        studentAssignments[student].push(newAssignment);
+                    });
+
+                    // Resetta i campi del form
+                    document.getElementById('assignment-title').value = '';
+                    document.getElementById('assignment-due-date').value = '';
+
+                    renderTeacherAssignments();
+                    alert('Assegnazione creata e assegnata agli studenti!');
+                } else {
+                    alert('Per favore, compila tutti i campi.');
+                }
+            });
+
+            // Funzione per visualizzare le assegnazioni dell'insegnante
+            function renderTeacherAssignments() {
+                const assignmentsDiv = teacherSection.querySelector('#assignments');
+                assignmentsDiv.innerHTML = '<h3>Assegnazioni Create</h3>';
+
+                assignments.forEach(assignment => {
+                    const div = document.createElement('div');
+                    div.classList.add('assignment');
+                    div.innerHTML = `
+                        <h4>${assignment.title}</h4>
+                        <p>Scadenza: ${assignment.dueDate}</p>
+                    `;
+                    assignmentsDiv.appendChild(div);
+                });
+            }
+
+            // Funzione per visualizzare le assegnazioni dello studente
+            function renderStudentAssignments() {
+                const assignmentsDiv = studentSection.querySelector('#assignments');
+                assignmentsDiv.innerHTML = '<h3>Le tue Assegnazioni</h3>';
+
+                const studentName = 'Studente1'; // Simulazione nome studente
+                const assignmentsList = studentAssignments[studentName] || [];
+
+                assignmentsList.forEach(assignment => {
+                    const div = document.createElement('div');
+                    div.classList.add('assignment');
+                    div.innerHTML = `
+                        <h4>${assignment.title}</h4>
+                        <p>Scadenza: ${assignment.dueDate}</p>
+                    `;
+                    assignmentsDiv.appendChild(div);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
