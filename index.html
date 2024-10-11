@@ -2,7 +2,8 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>La Mia Classe</title>
+    <title>La Mia Classe - Edu App Dinamica</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Aggiunto per il responsive -->
     <style>
         /* Styles CSS */
         body {
@@ -28,16 +29,18 @@
             list-style-type: none;
             margin: 0;
             padding: 0;
+            display: flex;
+            flex-wrap: wrap; /* Per adattarsi su schermi piccoli */
         }
         
         nav li {
-            float: left;
+            flex: 1 1 auto;
+            text-align: center;
         }
         
         nav li a {
             display: block;
             color: #000;
-            text-align: center;
             padding: 14px 16px;
             text-decoration: none;
         }
@@ -59,7 +62,7 @@
             color: white;
             text-align: center;
             padding: 10px;
-            position: fixed;
+            position: relative;
             bottom: 0;
             width: 100%;
         }
@@ -69,6 +72,7 @@
             border: 1px solid #ccc;
             padding: 15px;
             margin-bottom: 15px;
+            cursor: pointer; /* Indica che è cliccabile */
         }
         
         /* Stili per il login */
@@ -82,6 +86,8 @@
             padding: 10px 20px;
             margin: 5px;
             cursor: pointer;
+            width: 100%; /* Adatta i pulsanti alla larghezza del contenitore */
+            box-sizing: border-box;
         }
         
         /* Form per creare assegnazioni */
@@ -89,24 +95,39 @@
             margin-bottom: 30px;
         }
         
-        #create-assignment input, #create-assignment select {
-            padding: 5px;
-            margin-right: 10px;
+        #create-assignment input, #create-assignment select, #create-assignment button {
+            padding: 10px;
+            margin: 5px 0;
+            width: 100%; /* Adatta gli input alla larghezza del contenitore */
+            box-sizing: border-box;
         }
         
-        /* Lista studenti */
-        #students-list {
-            margin-top: 20px;
+        /* Pulsante Indietro */
+        .back-button {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 15px;
+            background-color: #3c78d8;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
         }
         
-        #students-list li {
-            margin-bottom: 5px;
+        /* Responsive adjustments */
+        @media screen and (max-width: 600px) {
+            nav ul {
+                flex-direction: column;
+            }
+            
+            header, footer {
+                text-align: center;
+            }
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>La Mia Classe Dinamica</h1>
+        <h1>La Mia Classe - Edu App Dinamica</h1>
     </header>
     <nav>
         <ul>
@@ -127,6 +148,7 @@
         
         <!-- Sezioni per insegnanti e studenti -->
         <section id="teacher-section" style="display:none;">
+            <a href="#" class="back-button" id="teacher-back" style="display:none;">Indietro</a>
             <h2>Benvenuto, Insegnante!</h2>
             <div id="create-assignment">
                 <h3>Crea una nuova assegnazione</h3>
@@ -141,15 +163,24 @@
         </section>
         
         <section id="student-section" style="display:none;">
+            <a href="#" class="back-button" id="student-back" style="display:none;">Indietro</a>
             <h2>Benvenuto, Studente!</h2>
             <div id="assignments">
                 <h3>Le tue Assegnazioni</h3>
                 <!-- Assegnazioni assegnate allo studente -->
             </div>
         </section>
+        
+        <!-- Dettagli Assegnazione -->
+        <section id="assignment-detail" style="display:none;">
+            <a href="#" class="back-button" id="detail-back">Indietro</a>
+            <div id="assignment-content">
+                <!-- Dettagli dell'assegnazione -->
+            </div>
+        </section>
     </main>
     <footer>
-        <p>&copy; 2024 La Mia Classe</p>
+        <p>&copy; 2024 La Mia Classe - Edu App Dinamica</p>
     </footer>
 
     <script>
@@ -159,9 +190,13 @@
             const nav = document.querySelector('nav');
             const teacherSection = document.getElementById('teacher-section');
             const studentSection = document.getElementById('student-section');
+            const assignmentDetailSection = document.getElementById('assignment-detail');
             const loginTeacherBtn = document.getElementById('login-teacher');
             const loginStudentBtn = document.getElementById('login-student');
             const navLogout = document.getElementById('nav-logout');
+            const teacherBackBtn = document.getElementById('teacher-back');
+            const studentBackBtn = document.getElementById('student-back');
+            const detailBackBtn = document.getElementById('detail-back');
 
             let userRole = ''; // 'teacher' o 'student'
 
@@ -174,6 +209,7 @@
             function showSection() {
                 loginSection.style.display = 'none';
                 nav.style.display = 'block';
+                assignmentDetailSection.style.display = 'none';
 
                 if (userRole === 'teacher') {
                     teacherSection.style.display = 'block';
@@ -205,6 +241,7 @@
                 nav.style.display = 'none';
                 teacherSection.style.display = 'none';
                 studentSection.style.display = 'none';
+                assignmentDetailSection.style.display = 'none';
             });
 
             // Funzione per l'insegnante per aggiungere una nuova assegnazione
@@ -217,7 +254,8 @@
                     const newAssignment = {
                         id: assignments.length + 1,
                         title,
-                        dueDate
+                        dueDate,
+                        description: 'Descrizione dell\'assegnazione: ' + title
                     };
                     assignments.push(newAssignment);
 
@@ -252,6 +290,9 @@
                         <h4>${assignment.title}</h4>
                         <p>Scadenza: ${assignment.dueDate}</p>
                     `;
+                    div.addEventListener('click', () => {
+                        showAssignmentDetail(assignment);
+                    });
                     assignmentsDiv.appendChild(div);
                 });
             }
@@ -271,9 +312,45 @@
                         <h4>${assignment.title}</h4>
                         <p>Scadenza: ${assignment.dueDate}</p>
                     `;
+                    div.addEventListener('click', () => {
+                        showAssignmentDetail(assignment);
+                    });
                     assignmentsDiv.appendChild(div);
                 });
             }
+
+            // Funzione per mostrare i dettagli dell'assegnazione
+            function showAssignmentDetail(assignment) {
+                teacherSection.style.display = 'none';
+                studentSection.style.display = 'none';
+                assignmentDetailSection.style.display = 'block';
+
+                const assignmentContent = document.getElementById('assignment-content');
+                assignmentContent.innerHTML = `
+                    <h3>${assignment.title}</h3>
+                    <p>Scadenza: ${assignment.dueDate}</p>
+                    <p>${assignment.description}</p>
+                `;
+            }
+
+            // Event listener per i pulsanti Indietro
+            detailBackBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                showSection();
+            });
+
+            // Aggiornamento per mostrare il pulsante Indietro solo quando necessario
+            function updateBackButton() {
+                if (userRole === 'teacher') {
+                    teacherBackBtn.style.display = assignmentDetailSection.style.display === 'block' ? 'inline-block' : 'none';
+                } else if (userRole === 'student') {
+                    studentBackBtn.style.display = assignmentDetailSection.style.display === 'block' ? 'inline-block' : 'none';
+                }
+            }
+
+            // Aggiorna il pulsante Indietro quando la sezione cambia
+            const observer = new MutationObserver(updateBackButton);
+            observer.observe(assignmentDetailSection, { attributes: true, attributeFilter: ['style'] });
         });
     </script>
 </body>
